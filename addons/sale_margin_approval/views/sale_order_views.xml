@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extension du formulaire de devis -->
+    <record id="view_sale_order_form_margin_approval" model="ir.ui.view">
+        <field name="name">sale.order.form.margin.approval</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Bandeau alerte sous le header -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-warning mb-0"
+                     invisible="margin_approval_state not in ['to_request','waiting','refused']">
+                    <span invisible="margin_approval_state != 'to_request'">
+                        &#9888; Ce devis requiert une approbation de marge avant confirmation.
+                    </span>
+                    <span invisible="margin_approval_state != 'waiting'">
+                        &#128336; Demande en attente d approbation par un responsable.
+                    </span>
+                    <span invisible="margin_approval_state != 'refused'">
+                        &#10060; Approbation refusee. Corrigez le devis ou soumettez une nouvelle demande.
+                    </span>
+                </div>
+                <div class="alert alert-success mb-0"
+                     invisible="margin_approval_state != 'approved'">
+                    &#10003; Derogation de marge approuvee.
+                </div>
+            </xpath>
+
+            <!-- Boutons dans le header -->
+            <xpath expr="//button[@name='action_confirm']" position="before">
+                <button name="action_request_approval" type="object"
+                        string="Demander une approbation"
+                        class="btn-warning"
+                        invisible="margin_approval_state not in ['to_request','refused']"/>
+                <button name="action_approve_margin" type="object"
+                        string="Approuver"
+                        class="btn-success"
+                        groups="sale_margin_approval.group_approver"
+                        invisible="margin_approval_state != 'waiting'"/>
+                <button name="action_refuse_margin" type="object"
+                        string="Refuser"
+                        class="btn-danger"
+                        groups="sale_margin_approval.group_approver"
+                        invisible="margin_approval_state != 'waiting'"/>
+            </xpath>
+
+            <!-- Onglet Approbation -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Approbation de marge" name="margin_approval"
+                      invisible="not margin_approval_ids">
+                    <group>
+                        <field name="margin_approval_state" widget="statusbar"
+                               statusbar_visible="no_required,to_request,waiting,approved,refused"
+                               readonly="1"/>
+                    </group>
+                    <field name="margin_approval_ids" readonly="1">
+                        <tree decoration-warning="state == 'waiting'"
+                              decoration-success="state == 'approved'"
+                              decoration-danger="state == 'refused'"
+                              decoration-muted="state == 'cancelled'">
+                            <field name="state"/>
+                            <field name="requested_by"/>
+                            <field name="requested_at"/>
+                            <field name="threshold_at_request" string="Seuil (%)"/>
+                            <field name="margin_rate_at_request" string="Taux (%)"/>
+                            <field name="decided_by"/>
+                            <field name="decided_at"/>
+                            <field name="decision_reason"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Colonne etat dans la liste des devis -->
+    <record id="view_quotation_list_margin_approval" model="ir.ui.view">
+        <field name="name">sale.order.list.margin.approval</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount_total']" position="after">
+                <field name="margin_approval_state" string="Approbation" optional="show"/>
+                <field name="margin_percent" string="Taux marque (%)" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Vue pivot analyse marges -->
+    <record id="view_sale_order_pivot_margin" model="ir.ui.view">
+        <field name="name">sale.order.pivot.margin</field>
+        <field name="model">sale.order</field>
+        <field name="type">pivot</field>
+        <field name="arch" type="xml">
+            <pivot string="Analyse des ventes et marges">
+                <field name="partner_id" type="row"/>
+                <field name="date_order" type="col" interval="month"/>
+                <field name="amount_untaxed" type="measure"/>
+                <field name="margin" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Action analyse -->
+    <record id="action_sale_margin_analysis" model="ir.actions.act_window">
+        <field name="name">Analyse marges</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">pivot,graph,list</field>
+        <field name="domain">[('state', 'in', ['sale', 'done'])]</field>
+    </record>
+</odoo>

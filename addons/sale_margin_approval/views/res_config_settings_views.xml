@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_margin" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.margin.approval</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='sale_management']" position="inside">
+                <block title="Approbation de marge" name="margin_approval_container">
+                    <setting string="Seuil de marge (%)"
+                             help="Taux de marque minimum en dessous duquel une approbation est requise avant confirmation du devis.">
+                        <field name="margin_approval_threshold"/>
+                        <span class="o_form_label">%</span>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_approval_decision">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="order">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Rapport de derogation de marge</h2>
+                        <h3>Devis : <t t-esc="order.name"/></h3>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <strong>Client :</strong> <t t-esc="order.partner_id.name"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Commercial :</strong> <t t-esc="order.user_id.name"/>
+                            </div>
+                        </div>
+
+                        <table class="table table-sm mt-4">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th class="text-right">Qte</th>
+                                    <th class="text-right">Prix unit.</th>
+                                    <th class="text-right">Remise %</th>
+                                    <th class="text-right">Cout unit.</th>
+                                    <th class="text-right">Total HT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="order.order_line" t-as="line">
+                                    <tr t-if="not line.display_type">
+                                        <td><t t-esc="line.product_id.name"/></td>
+                                        <td class="text-right"><t t-esc="line.product_uom_qty"/></td>
+                                        <td class="text-right"><t t-esc="line.price_unit"/></td>
+                                        <td class="text-right"><t t-esc="line.discount"/>%</td>
+                                        <td class="text-right"><t t-esc="line.purchase_price"/></td>
+                                        <td class="text-right"><t t-esc="line.price_subtotal"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-3">
+                            <div class="col-6 offset-6">
+                                <table class="table table-sm">
+                                    <tr><td>Montant HT</td><td class="text-right"><t t-esc="order.amount_untaxed"/> <t t-esc="order.currency_id.name"/></td></tr>
+                                    <tr><td>Marge estimee</td><td class="text-right"><t t-esc="order.margin"/> <t t-esc="order.currency_id.name"/></td></tr>
+                                    <tr><td><strong>Taux de marque</strong></td><td class="text-right"><strong><t t-esc="'%.1f' % order.margin_percent"/>%</strong></td></tr>
+                                    <tr><td>Seuil autorise</td><td class="text-right"><t t-esc="order.company_id.margin_approval_threshold"/>%</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <t t-foreach="order.margin_approval_ids" t-as="approval">
+                            <div class="mt-4 p-3 border rounded">
+                                <h4>Decision d approbation</h4>
+                                <p><strong>Etat :</strong> <t t-esc="dict(approval._fields['state'].selection).get(approval.state)"/></p>
+                                <p><strong>Demande par :</strong> <t t-esc="approval.requested_by.name"/> le <t t-esc="approval.requested_at"/></p>
+                                <p><strong>Justification :</strong> <t t-esc="approval.justification"/></p>
+                                <t t-if="approval.decided_by">
+                                    <p><strong>Decide par :</strong> <t t-esc="approval.decided_by.name"/> le <t t-esc="approval.decided_at"/></p>
+                                    <p><strong>Motif :</strong> <t t-esc="approval.decision_reason"/></p>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

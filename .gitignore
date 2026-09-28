@@ -1,0 +1,11 @@
+﻿.env
+__pycache__/
+*.pyc
+*.pyo
+.idea/
+.vscode/
+*.log
+
+frontend/node_modules/
+frontend/dist/
+frontend/.env*

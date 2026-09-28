@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_margin_approval_salesman,sale.margin.approval salesman,model_sale_margin_approval,sales_team.group_sale_salesman,1,0,0,0
+access_sale_margin_approval_manager,sale.margin.approval manager,model_sale_margin_approval,sales_team.group_sale_manager,1,1,1,1
+access_sale_margin_approval_approver,sale.margin.approval approver,model_sale_margin_approval,sale_margin_approval.group_approver,1,1,1,0

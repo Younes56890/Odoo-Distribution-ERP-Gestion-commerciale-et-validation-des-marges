@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_approval_decision" model="ir.actions.report">
+        <field name="name">Decision d approbation</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">sale_margin_approval.report_approval_decision</field>
+        <field name="report_file">sale_margin_approval.report_approval_decision</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="groups_id" eval="[(4, ref('sales_team.group_sale_manager'))]"/>
+    </record>
+</odoo>

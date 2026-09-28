@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ======================================================
+         CLIENTS (10)
+    ====================================================== -->
+    <record id="partner_client_1" model="res.partner">
+        <field name="name">Optique Lumiere SARL</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Casablanca</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_2" model="res.partner">
+        <field name="name">Vision Plus Maroc</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Rabat</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_3" model="res.partner">
+        <field name="name">Centre Optique Atlas</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Fes</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_4" model="res.partner">
+        <field name="name">Lunetterie du Sud</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Marrakech</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_5" model="res.partner">
+        <field name="name">Optika Pro Tanger</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Tanger</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_6" model="res.partner">
+        <field name="name">Regard Net Agadir</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Agadir</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_7" model="res.partner">
+        <field name="name">Les Lunettes du Roi</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Meknes</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_8" model="res.partner">
+        <field name="name">Optique Moderne Oujda</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Oujda</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_9" model="res.partner">
+        <field name="name">ClearView Tetouan</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Tetouan</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+    <record id="partner_client_10" model="res.partner">
+        <field name="name">OpticWorld Kenitra</field>
+        <field name="customer_rank">1</field>
+        <field name="city">Kenitra</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+
+    <!-- ======================================================
+         FOURNISSEURS (5)
+    ====================================================== -->
+    <record id="partner_supplier_1" model="res.partner">
+        <field name="name">Optique Import Italia SpA</field>
+        <field name="supplier_rank">1</field>
+        <field name="country_id" ref="base.it"/>
+    </record>
+    <record id="partner_supplier_2" model="res.partner">
+        <field name="name">Frame Factory China</field>
+        <field name="supplier_rank">1</field>
+        <field name="country_id" ref="base.cn"/>
+    </record>
+    <record id="partner_supplier_3" model="res.partner">
+        <field name="name">EuroOptic France SAS</field>
+        <field name="supplier_rank">1</field>
+        <field name="country_id" ref="base.fr"/>
+    </record>
+    <record id="partner_supplier_4" model="res.partner">
+        <field name="name">Accessoires Vision Espana</field>
+        <field name="supplier_rank">1</field>
+        <field name="country_id" ref="base.es"/>
+    </record>
+    <record id="partner_supplier_5" model="res.partner">
+        <field name="name">Distribution Optique Maroc</field>
+        <field name="supplier_rank">1</field>
+        <field name="city">Casablanca</field>
+        <field name="country_id" ref="base.ma"/>
+    </record>
+
+    <!-- ======================================================
+         CATEGORIES DE PRODUITS
+    ====================================================== -->
+    <record id="product_category_montures" model="product.category">
+        <field name="name">Montures</field>
+    </record>
+    <record id="product_category_etuis" model="product.category">
+        <field name="name">Etuis</field>
+    </record>
+    <record id="product_category_accessoires" model="product.category">
+        <field name="name">Accessoires</field>
+    </record>
+
+    <!-- ======================================================
+         PRODUITS — MONTURES (10)
+    ====================================================== -->
+    <record id="product_monture_t1" model="product.template">
+        <field name="name">Monture Titanium T1</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">250.0</field>
+        <field name="standard_price">120.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t2" model="product.template">
+        <field name="name">Monture Acetate A2</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">180.0</field>
+        <field name="standard_price">80.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t3" model="product.template">
+        <field name="name">Monture Sport S3</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">320.0</field>
+        <field name="standard_price">160.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t4" model="product.template">
+        <field name="name">Monture Enfant E4</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">120.0</field>
+        <field name="standard_price">55.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t5" model="product.template">
+        <field name="name">Monture Premium P5</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">450.0</field>
+        <field name="standard_price">200.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t6" model="product.template">
+        <field name="name">Monture Solaire Sol6</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">200.0</field>
+        <field name="standard_price">90.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t7" model="product.template">
+        <field name="name">Monture Eco Recyclee R7</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">150.0</field>
+        <field name="standard_price">65.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t8" model="product.template">
+        <field name="name">Monture Classique C8</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">130.0</field>
+        <field name="standard_price">60.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t9" model="product.template">
+        <field name="name">Monture Bi-matiere B9</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">280.0</field>
+        <field name="standard_price">130.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_monture_t10" model="product.template">
+        <field name="name">Monture Designer D10</field>
+        <field name="categ_id" ref="product_category_montures"/>
+        <field name="type">product</field>
+        <field name="list_price">550.0</field>
+        <field name="standard_price">250.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+
+    <!-- ======================================================
+         PRODUITS — ETUIS (10)
+    ====================================================== -->
+    <record id="product_etui_e1" model="product.template">
+        <field name="name">Etui Rigide Cuir</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">55.0</field>
+        <field name="standard_price">25.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e2" model="product.template">
+        <field name="name">Etui Semi-rigide Tissu</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">35.0</field>
+        <field name="standard_price">15.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e3" model="product.template">
+        <field name="name">Etui Souple Neoprene</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">20.0</field>
+        <field name="standard_price">8.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e4" model="product.template">
+        <field name="name">Etui Premium Aluminium</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">90.0</field>
+        <field name="standard_price">40.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e5" model="product.template">
+        <field name="name">Etui Enfant Motif</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">25.0</field>
+        <field name="standard_price">10.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e6" model="product.template">
+        <field name="name">Etui Magneetique</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">45.0</field>
+        <field name="standard_price">20.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e7" model="product.template">
+        <field name="name">Etui Solaire Sport</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">30.0</field>
+        <field name="standard_price">12.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e8" model="product.template">
+        <field name="name">Pochette Microfibre</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">12.0</field>
+        <field name="standard_price">4.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e9" model="product.template">
+        <field name="name">Etui Double Compartiment</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">65.0</field>
+        <field name="standard_price">28.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_etui_e10" model="product.template">
+        <field name="name">Trousse Optique Pro</field>
+        <field name="categ_id" ref="product_category_etuis"/>
+        <field name="type">product</field>
+        <field name="list_price">80.0</field>
+        <field name="standard_price">35.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+
+    <!-- ======================================================
+         PRODUITS — ACCESSOIRES (10)
+    ====================================================== -->
+    <record id="product_acc_a1" model="product.template">
+        <field name="name">Chiffon Microfibre Premium</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">15.0</field>
+        <field name="standard_price">5.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a2" model="product.template">
+        <field name="name">Spray Nettoyant 30ml</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">20.0</field>
+        <field name="standard_price">7.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a3" model="product.template">
+        <field name="name">Kit Nettoyage Complet</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">45.0</field>
+        <field name="standard_price">18.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a4" model="product.template">
+        <field name="name">Visse de Remplacement (lot 10)</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">10.0</field>
+        <field name="standard_price">3.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a5" model="product.template">
+        <field name="name">Plaquettes Nasales Silicone</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">8.0</field>
+        <field name="standard_price">2.5</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a6" model="product.template">
+        <field name="name">Cordon Lunettes Retenue</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">12.0</field>
+        <field name="standard_price">4.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a7" model="product.template">
+        <field name="name">Tournois Optique Mini</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">9.0</field>
+        <field name="standard_price">3.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a8" model="product.template">
+        <field name="name">Etiquettes Prix Adhesives</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">18.0</field>
+        <field name="standard_price">6.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a9" model="product.template">
+        <field name="name">Presentoir Montures 12 Places</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">350.0</field>
+        <field name="standard_price">150.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+    <record id="product_acc_a10" model="product.template">
+        <field name="name">Boite Rangement Vitrine</field>
+        <field name="categ_id" ref="product_category_accessoires"/>
+        <field name="type">product</field>
+        <field name="list_price">120.0</field>
+        <field name="standard_price">50.0</field>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="uom_po_id" ref="uom.product_uom_unit"/>
+    </record>
+
+</odoo>

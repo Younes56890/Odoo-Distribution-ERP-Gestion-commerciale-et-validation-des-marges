@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Liste des demandes -->
+    <record id="view_sale_margin_approval_tree" model="ir.ui.view">
+        <field name="name">sale.margin.approval.tree</field>
+        <field name="model">sale.margin.approval</field>
+        <field name="arch" type="xml">
+            <tree string="Demandes d approbation"
+                  decoration-warning="state == 'waiting'"
+                  decoration-success="state == 'approved'"
+                  decoration-danger="state == 'refused'">
+                <field name="order_id"/>
+                <field name="requested_by"/>
+                <field name="requested_at"/>
+                <field name="state"/>
+                <field name="threshold_at_request" string="Seuil (%)"/>
+                <field name="margin_rate_at_request" string="Taux marque (%)"/>
+                <field name="amount_untaxed_at_request" string="Montant HT"/>
+                <field name="decided_by"/>
+                <field name="decided_at"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Formulaire -->
+    <record id="view_sale_margin_approval_form" model="ir.ui.view">
+        <field name="name">sale.margin.approval.form</field>
+        <field name="model">sale.margin.approval</field>
+        <field name="arch" type="xml">
+            <form string="Demande d approbation">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="waiting,approved,refused"/>
+                </header>
+                <sheet>
+                    <group string="Demande">
+                        <field name="order_id" readonly="1"/>
+                        <field name="requested_by" readonly="1"/>
+                        <field name="requested_at" readonly="1"/>
+                        <field name="justification" readonly="1"/>
+                    </group>
+                    <group string="Valeurs au moment de la demande">
+                        <field name="threshold_at_request" readonly="1"/>
+                        <field name="margin_rate_at_request" readonly="1"/>
+                        <field name="amount_untaxed_at_request" readonly="1"/>
+                        <field name="margin_at_request" readonly="1"/>
+                    </group>
+                    <group string="Decision" invisible="state == 'waiting'">
+                        <field name="decided_by" readonly="1"/>
+                        <field name="decided_at" readonly="1"/>
+                        <field name="decision_reason" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recherche -->
+    <record id="view_sale_margin_approval_search" model="ir.ui.view">
+        <field name="name">sale.margin.approval.search</field>
+        <field name="model">sale.margin.approval</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="order_id"/>
+                <field name="requested_by"/>
+                <filter string="En attente" name="waiting" domain="[('state','=','waiting')]"/>
+                <filter string="Approuvees" name="approved" domain="[('state','=','approved')]"/>
+                <filter string="Refusees" name="refused" domain="[('state','=','refused')]"/>
+                <group expand="0" string="Regrouper par">
+                    <filter string="Commercial" name="group_by_user"
+                            context="{'group_by': 'requested_by'}"/>
+                    <filter string="Etat" name="group_by_state"
+                            context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_sale_margin_approval" model="ir.actions.act_window">
+        <field name="name">Demandes d approbation</field>
+        <field name="res_model">sale.margin.approval</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_waiting': 1}</field>
+    </record>
+</odoo>
