@@ -1,0 +1,23 @@
+import { useState } from 'react';
+import { FilePlus, Pencil, Send } from '../components/icons';
+import { api } from '../services/api';
+import { useDebounced, useResource } from '../hooks/useResource';
+import { date, money, percent } from '../domain/quote';
+import { Badge, Empty, Field, Modal, PageHeading, Pagination, Panel, ResourceState, SearchField } from '../components/ui';
+
+export default function Orders({ user, revision, run, navigate, editOrder }) {
+  const [q, setQ] = useState(''), [offset, setOffset] = useState(0), [detail, setDetail] = useState(null);
+  const [justification, setJustification] = useState(''), [busy, setBusy] = useState(false);
+  const resource = useResource('orders', { q: useDebounced(q), offset, limit: 15 }, revision);
+  const open = async order => { const result = await run(() => api.order(order.id)); if (result) { setDetail(result); setJustification(''); } };
+  return <><PageHeading eyebrow="Espace commercial" title="Vos accords, à chaque étape." description="Suivez les devis, les dérogations et les commandes confirmées."><button className="btn primary" onClick={() => navigate('quotes')}><FilePlus size={17}/> Nouveau devis</button></PageHeading>
+    <Panel><div className="panel-toolbar"><SearchField value={q} onChange={value => { setQ(value); setOffset(0); }} placeholder="Rechercher un devis ou un client…"/><span className="subtle-tag">{resource.data?.total || 0} dossiers</span></div>
+      <ResourceState resource={resource}>{resource.data && <>{resource.data.items.length ? <div className="table-wrap"><table><thead><tr><th>Référence / date</th><th>Client</th><th>Montant HT</th><th>Marge</th><th>Approbation</th><th>Commande</th><th/></tr></thead><tbody>{resource.data.items.map(order => <tr key={order.id}><td><strong>{order.name}</strong><small className="cell-note">{date(order.date_order)}</small></td><td>{order.partner_name}</td><td className="numeric">{money(order.amount_untaxed, order.currency)}</td><td>{percent(order.margin_percent)}</td><td><Badge state={order.margin_approval_state}/></td><td><Badge state={order.state}/></td><td><button className="btn text" onClick={() => open(order)}>Ouvrir →</button></td></tr>)}</tbody></table></div> : <Empty title="Aucun devis pour le moment" action={<button className="btn primary" onClick={() => navigate('quotes')}>Créer un devis</button>}/>}<Pagination data={resource.data} onPage={setOffset}/></>}</ResourceState>
+    </Panel>
+    {detail && <Modal title={`${detail.name} · ${detail.partner_name}`} wide onClose={() => setDetail(null)}><div className="detail-top"><Badge state={detail.state}/><Badge state={detail.margin_approval_state}/><span className="muted">Version {detail.revision}</span><strong>{money(detail.amount_untaxed, detail.currency)} HT</strong></div>
+      <div className="table-wrap"><table><thead><tr><th>Produit</th><th>Qté</th><th>Prix HT</th><th>Remise</th></tr></thead><tbody>{detail.lines.map((line, i) => <tr key={line.id || i}><td>{line.name}</td><td>{line.qty}</td><td>{money(line.price, detail.currency)}</td><td>{percent(line.discount)}</td></tr>)}</tbody></table></div>
+      <h3 className="section-title">Historique des approbations</h3>{detail.history.length ? <div className="timeline">{detail.history.map(item => <div className="timeline-item" key={item.id}><i/><div><div className="timeline-title"><Badge state={item.state}/><small>Version {item.revision} · {date(item.requested_at)}</small></div><p>{item.justification}</p><small>Demande : {item.requested_by || detail.salesman}</small>{item.reason && <p><strong>{item.decided_by || 'Circuit métier'} :</strong> {item.reason}</p>}</div></div>)}</div> : <p className="muted">Aucune dérogation demandée sur ce devis.</p>}
+      {['draft', 'sent'].includes(detail.state) && <><Field label="Justification pour une nouvelle demande"><textarea rows="2" value={justification} onChange={e => setJustification(e.target.value)} placeholder="Expliquez le contexte commercial si une dérogation est nécessaire."/></Field><div className="form-actions"><button className="btn secondary" disabled={busy} onClick={() => { editOrder(detail); setDetail(null); }}><Pencil size={16}/> Modifier les conditions</button><button className="btn primary" disabled={busy || detail.margin_approval_state === 'waiting'} onClick={async () => { setBusy(true); const result = await run(() => api.submitOrder(detail.id, { justification }), 'Devis soumis au circuit commercial.'); setBusy(false); if (result) setDetail(result); }}><Send size={16}/> {detail.margin_approval_state === 'approved' ? 'Confirmer la commande' : 'Soumettre'}</button></div></>}
+    </Modal>}
+  </>;
+}

@@ -63,7 +63,7 @@
                             <field name="requested_by"/>
                             <field name="requested_at"/>
                             <field name="threshold_at_request" string="Seuil (%)"/>
-                            <field name="margin_rate_at_request" string="Taux (%)"/>
+                            <field name="margin_rate_at_request" widget="percentage" string="Taux (%)"/>
                             <field name="decided_by"/>
                             <field name="decided_at"/>
                             <field name="decision_reason"/>
@@ -82,7 +82,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='amount_total']" position="after">
                 <field name="margin_approval_state" string="Approbation" optional="show"/>
-                <field name="margin_percent" string="Taux marque (%)" optional="show"/>
+                <field name="margin_percent" widget="percentage" string="Taux marque (%)" optional="show"/>
             </xpath>
         </field>
     </record>
@@ -106,7 +106,7 @@
     <record id="action_sale_margin_analysis" model="ir.actions.act_window">
         <field name="name">Analyse marges</field>
         <field name="res_model">sale.order</field>
-        <field name="view_mode">pivot,graph,list</field>
+        <field name="view_mode">pivot,graph,tree</field>
         <field name="domain">[('state', 'in', ['sale', 'done'])]</field>
     </record>
 </odoo>

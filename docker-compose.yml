@@ -6,7 +6,7 @@
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Configurez DB_PASSWORD dans .env}
     volumes:
       - odoo_db_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,16 +23,21 @@
       db:
         condition: service_healthy
     ports:
-      - "8069:8069"
+      - "127.0.0.1:8069:8069"
     environment:
       HOST: db
       USER: odoo
-      PASSWORD: ${DB_PASSWORD}
+      PASSWORD: ${DB_PASSWORD:?Configurez DB_PASSWORD dans .env}
+      ODOO_MASTER_PASSWORD: ${ODOO_MASTER_PASSWORD:?Configurez ODOO_MASTER_PASSWORD dans .env}
+      OPTIKA_DB: ${OPTIKA_DB:-optika_demo}
+      OPTIKA_ALLOWED_ORIGINS: ${OPTIKA_ALLOWED_ORIGINS:-}
     volumes:
       - ./addons:/mnt/extra-addons
-      - ./config/odoo.conf:/etc/odoo/odoo.conf
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:ro
+      - ./config/bootstrap.py:/opt/optika/bootstrap.py:ro
       - odoo_web_data:/var/lib/odoo
-    command: odoo --dev=all
+    entrypoint: ["python3", "/opt/optika/bootstrap.py"]
+    command: ["odoo"]
 
 volumes:
   odoo_db_data:

@@ -1,0 +1,12 @@
+<odoo noupdate="1">
+  <!-- No password or API key: used only by ir.cron / validated internal calls. -->
+  <record id="user_automation" model="res.users">
+    <field name="name">Optika — suivi interne</field>
+    <field name="login">__optika_automation__</field>
+    <field name="groups_id" eval="[(6, 0, [ref('base.group_user'), ref('group_runner')])]"/>
+    <field name="company_id" ref="base.main_company"/>
+    <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]"/>
+    <field name="notification_type">inbox</field>
+    <field name="tz">Africa/Casablanca</field>
+  </record>
+</odoo>

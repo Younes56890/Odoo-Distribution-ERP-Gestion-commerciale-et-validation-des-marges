@@ -1,29 +1,29 @@
 from odoo import api, models
 
-# Champs dont la modification sur une ligne invalide l approbation du devis
 INVALIDATING_LINE_FIELDS = {
-    'product_id',
-    'product_uom_qty',
-    'product_uom',
-    'price_unit',
-    'discount',
-    'purchase_price',
+    'product_id', 'product_uom_qty', 'product_uom', 'price_unit', 'discount',
+    'purchase_price', 'tax_id', 'order_id', 'display_type',
 }
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines.mapped('order_id')._invalidate_approval('Ajout d’une ligne')
+        return lines
+
     def write(self, vals):
-        # Detecter si un champ critique change sur une ligne liee a un devis approuve/en attente
-        orders_to_invalidate = self.env['sale.order']
-        if set(vals.keys()) & INVALIDATING_LINE_FIELDS:
-            orders_to_invalidate = self.mapped('order_id').filtered(
-                lambda o: o.margin_approval_state in ('waiting', 'approved')
-            )
+        orders = self.mapped('order_id')
         result = super().write(vals)
-        if orders_to_invalidate:
-            orders_to_invalidate._invalidate_approval(
-                'Modification d une ligne commerciale (produit, quantite, prix, remise ou cout)'
-            )
+        if INVALIDATING_LINE_FIELDS.intersection(vals):
+            (orders | self.mapped('order_id'))._invalidate_approval('Modification d’une ligne commerciale')
+        return result
+
+    def unlink(self):
+        orders = self.mapped('order_id')
+        result = super().unlink()
+        orders._invalidate_approval('Suppression d’une ligne')
         return result

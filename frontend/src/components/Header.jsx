@@ -1,36 +1,10 @@
-import React from 'react';
+import { Calendar, LogOut, Menu, Search } from './icons';
 
-export default function Header({ user, toggleTheme, isDark, logout }) {
-  return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between items-center">
-          <div className="flex items-center gap-2 pr-4">
-            <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-lg">O</span>
-            </div>
-            <span className="text-lg font-bold text-slate-900 tracking-tight hidden sm:block">Optika</span>
-          </div>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full text-slate-600 hover:bg-slate-100"
-            aria-label="Toggle theme"
-          >
-            {isDark ? '🌙' : '☀️'}
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-              {user?.name?.charAt(0) || ''}
-            </div>
-            <button
-              onClick={logout}
-              className="text-sm text-slate-500 hover:text-red-600 font-medium transition-colors"
-            >
-              Déconnexion
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+const labels = { manager: 'Direction', commercial: 'Commercial', logistics: 'Logistique', accountant: 'Finance' };
+export default function Header({ user, logout, busy, pageTitle, onSearch, onMenu }) {
+  const today = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', timeZone: 'Africa/Casablanca' }).format(new Date());
+  return <header className="topbar">
+    <div className="topbar-left"><button className="icon-btn mobile-menu-button" aria-label="Ouvrir la navigation" onClick={onMenu}><Menu size={22}/></button><div className="breadcrumb"><span>Espace de travail</span><span className="breadcrumb-separator">/</span><strong>{pageTitle}</strong></div></div>
+    <div className="topbar-actions"><button className="global-search" onClick={onSearch}><Search size={17}/><span>Aller à un espace</span><kbd>Ctrl K</kbd></button><span className="header-date"><Calendar size={16}/>{today}</span><div className="user-divider"/><div className="user-avatar">{user.name.charAt(0)}</div><div className="user-info"><strong>{user.name.split(' · ')[0]}</strong><small>{labels[user.role]}</small></div><button className="icon-btn" title="Déconnexion" aria-label="Déconnexion" disabled={busy} onClick={logout}><LogOut size={18}/></button></div>
+  </header>;
 }

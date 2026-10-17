@@ -151,7 +151,7 @@ class TestMarginApproval(TransactionCase):
         order._do_request_approval(justification='Test duplication')
         order.with_user(self.manager)._do_decide('approved', 'Accorde')
         copy = order.copy()
-        self.assertEqual(copy.margin_approval_state, 'no_required')
+        self.assertEqual(copy.margin_approval_state, 'to_request')
         self.assertFalse(copy.margin_approval_ids)
 
     # ------------------------------------------------------------------
@@ -174,3 +174,45 @@ class TestMarginApproval(TransactionCase):
         self.assertEqual(order.margin_approval_state, 'refused')
         with self.assertRaises(UserError):
             order.with_user(self.commercial).action_confirm()
+
+    def test_10_cannot_forge_approval_state(self):
+        order = self._create_order(discount=10)
+        with self.assertRaises(AccessError):
+            order.with_user(self.commercial).write({'margin_approval_state': 'approved'})
+
+    def test_11_missing_history_blocks_confirmation(self):
+        order = self._create_order(discount=10)
+        order.sudo().write({'margin_approval_state': 'approved'})
+        with self.assertRaises(UserError):
+            order.with_user(self.commercial).action_confirm()
+
+    def test_12_deleting_line_invalidates_approval(self):
+        order = self._create_order(discount=10)
+        order.order_line.copy({'order_id': order.id})
+        order._do_request_approval('Accord de test')
+        order.with_user(self.manager)._do_decide('approved', 'Accord exceptionnel')
+        order.order_line[:1].unlink()
+        self.assertEqual(order.margin_approval_state, 'to_request')
+        self.assertEqual(order.margin_approval_ids.state, 'cancelled')
+
+    def test_13_request_wizard_submits(self):
+        order = self._create_order(discount=10)
+        wizard = self.env['sale.approval.request.wizard'].with_user(self.commercial).create({
+            'order_id': order.id, 'justification': 'Client stratégique',
+        })
+        wizard.action_submit()
+        self.assertEqual(order.margin_approval_state, 'waiting')
+
+    def test_14_threshold_change_invalidates_snapshot(self):
+        order = self._create_order(discount=10)
+        order._do_request_approval('Accord de test')
+        order.with_user(self.manager)._do_decide('approved', 'Accord exceptionnel')
+        self.company.margin_approval_threshold = 20
+        with self.assertRaises(UserError):
+            order.with_user(self.commercial).action_confirm()
+
+    def test_15_decision_checks_role_in_business_method(self):
+        order = self._create_order(discount=10)
+        order._do_request_approval('Accord de test')
+        with self.assertRaises(AccessError):
+            order.with_user(self.commercial)._do_decide('approved', 'Tentative interdite')

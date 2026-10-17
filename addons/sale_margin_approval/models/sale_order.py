@@ -1,253 +1,185 @@
+import hashlib
+import json
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
-
-APPROVAL_STATES = [
-    ('no_required', 'Non requise'),
-    ('to_request', 'A demander'),
-    ('waiting', 'En attente'),
-    ('approved', 'Approuvee'),
-    ('refused', 'Refusee'),
-]
-
-# Champs dont la modification invalide une approbation existante
 INVALIDATING_FIELDS = {
-    'partner_id',
-    'order_line',
+    'partner_id', 'order_line', 'pricelist_id', 'currency_id', 'company_id',
+    'payment_term_id', 'fiscal_position_id',
 }
+PROTECTED_FIELDS = {'margin_approval_state', 'commercial_revision', 'margin_approval_ids'}
 
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    # ------------------------------------------------------------------
-    # Champs d approbation
-    # ------------------------------------------------------------------
-    margin_approval_state = fields.Selection(
-        selection=APPROVAL_STATES,
-        string='Etat de l approbation',
-        default='no_required',
-        copy=False,
-        tracking=True,
-        index=True,
-    )
-    margin_approval_ids = fields.One2many(
-        'sale.margin.approval',
-        'order_id',
-        string='Demandes d approbation',
-        copy=False,
-    )
-    margin_approval_required = fields.Boolean(
-        string='Approbation requise',
-        compute='_compute_margin_approval_required',
-        store=True,
-    )
-    active_approval_id = fields.Many2one(
-        'sale.margin.approval',
-        string='Approbation active',
-        compute='_compute_active_approval_id',
-        store=False,
-    )
+    margin_approval_state = fields.Selection([
+        ('no_required', 'Non requise'), ('to_request', 'À demander'),
+        ('waiting', 'En attente'), ('approved', 'Approuvée'), ('refused', 'Refusée'),
+    ], default='no_required', copy=False, tracking=True, index=True, readonly=True)
+    commercial_revision = fields.Integer(default=1, copy=False, readonly=True)
+    margin_approval_ids = fields.One2many('sale.margin.approval', 'order_id', copy=False)
+    margin_approval_required = fields.Boolean(compute='_compute_margin_approval_required', store=True)
+    active_approval_id = fields.Many2one('sale.margin.approval', compute='_compute_active_approval_id')
 
-    # ------------------------------------------------------------------
-    # Calculs
-    # ------------------------------------------------------------------
-    @api.depends('margin_percent', 'company_id.margin_approval_threshold')
+    @api.depends('margin_percent', 'amount_untaxed', 'company_id.margin_approval_threshold')
     def _compute_margin_approval_required(self):
         for order in self:
-            threshold = order.company_id.margin_approval_threshold
             order.margin_approval_required = bool(
-                order.amount_untaxed and (order.margin_percent * 100) < threshold
+                order.amount_untaxed > 0
+                and order.margin_percent * 100 + 1e-7 < order.company_id.margin_approval_threshold
             )
 
-    @api.depends('margin_approval_ids', 'margin_approval_ids.state')
+    @api.depends('margin_approval_ids.state')
     def _compute_active_approval_id(self):
         for order in self:
-            waiting = order.margin_approval_ids.filtered(
-                lambda a: a.state in ('waiting', 'approved')
-            )
-            order.active_approval_id = waiting[:1] if waiting else False
+            order.active_approval_id = order.margin_approval_ids.filtered(
+                lambda approval: approval.state in ('waiting', 'approved'))[:1]
 
-    # ------------------------------------------------------------------
-    # Invalidation automatique apres modification
-    # ------------------------------------------------------------------
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any(PROTECTED_FIELDS.intersection(vals) for vals in vals_list):
+            raise AccessError(_('Les champs d’approbation sont gérés par le circuit métier.'))
+        orders = super().create(vals_list)
+        orders.action_check_margin_and_update_state()
+        return orders
+
     def write(self, vals):
-        # Si le devis est en attente ou approuve et qu un champ cle change,
-        # on annule l approbation courante.
-        orders_to_invalidate = self.env['sale.order']
-        if set(vals.keys()) & INVALIDATING_FIELDS:
-            orders_to_invalidate = self.filtered(
-                lambda o: o.margin_approval_state in ('waiting', 'approved')
-            )
+        if not self.env.su and PROTECTED_FIELDS.intersection(vals):
+            raise AccessError(_('Les champs d’approbation sont gérés par le circuit métier.'))
         result = super().write(vals)
-        if orders_to_invalidate:
-            orders_to_invalidate._invalidate_approval('Modification des conditions commerciales')
+        if INVALIDATING_FIELDS.intersection(vals):
+            self._invalidate_approval(_('Modification des conditions commerciales'))
         return result
 
-    def _invalidate_approval(self, reason=''):
-        """Annule les approbations actives et repasse l etat a to_request."""
-        for order in self:
-            active = order.margin_approval_ids.filtered(
-                lambda a: a.state in ('waiting', 'approved')
-            )
-            active.sudo().write({'state': 'cancelled'})
-            order.margin_approval_state = 'to_request'
-            order.message_post(
-                body=f"Approbation invalidee. Raison : {reason}. "
-                     "Une nouvelle demande est necessaire."
-            )
+    def _set_approval_state(self, state):
+        # Private methods cannot be invoked through Odoo RPC. No context flag bypasses this guard.
+        return super(SaleOrder, self).write({'margin_approval_state': state})
 
-    # ------------------------------------------------------------------
-    # Actions metier
-    # ------------------------------------------------------------------
-    def action_check_margin_and_update_state(self):
-        """Recalcule et met a jour l etat d approbation apres une modification."""
-        for order in self:
-            if not order.margin_approval_required:
-                if order.margin_approval_state in ('to_request', 'refused'):
-                    order.margin_approval_state = 'no_required'
-            else:
-                if order.margin_approval_state == 'no_required':
-                    order.margin_approval_state = 'to_request'
-
-    def action_request_approval(self):
-        """Ouvre le wizard de demande d approbation."""
+    def _lock_for_approval(self):
         self.ensure_one()
-        self._check_can_request_approval()
-        return {
-            'name': _('Demander une approbation'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'sale.approval.request.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {'default_order_id': self.id},
+        self.check_access_rights('write')
+        self.check_access_rule('write')
+        self.env.cr.execute('SELECT id FROM sale_order WHERE id = %s FOR UPDATE', (self.id,))
+        self.invalidate_recordset()
+
+    def _commercial_fingerprint(self):
+        self.ensure_one()
+        payload = {
+            'partner': self.partner_id.id, 'company': self.company_id.id,
+            'currency': self.currency_id.id, 'pricelist': self.pricelist_id.id,
+            'payment_term': self.payment_term_id.id, 'fiscal_position': self.fiscal_position_id.id,
+            'threshold': self.company_id.margin_approval_threshold,
+            'amount': self.amount_untaxed, 'margin': self.margin,
+            'lines': [(line.id, line.product_id.id, line.product_uom.id,
+                       line.product_uom_qty, line.price_unit, line.discount,
+                       line.purchase_price, sorted(line.tax_id.ids))
+                      for line in self.order_line.sorted('id') if not line.display_type],
         }
+        return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+    def _invalidate_approval(self, reason=''):
+        for order in self:
+            active = order.margin_approval_ids.filtered(lambda a: a.state in ('waiting', 'approved'))
+            # Narrow elevation: cancellations follow an already authorized commercial edit.
+            if active:
+                active.sudo().write({'state': 'cancelled', 'decision_reason': reason})
+                order.message_post(body=_('Approbation invalidée : %s', reason))
+            super(SaleOrder, order).write({'commercial_revision': order.commercial_revision + 1})
+            if active or order.margin_approval_state != 'refused':
+                order._set_approval_state('to_request' if order.margin_approval_required else 'no_required')
+
+    def action_check_margin_and_update_state(self):
+        for order in self:
+            if order.margin_approval_state in ('no_required', 'to_request', 'refused'):
+                order._set_approval_state('to_request' if order.margin_approval_required else 'no_required')
 
     def _check_can_request_approval(self):
         self.ensure_one()
-        if not self.order_line:
-            raise UserError(_("Le devis est vide. Ajoutez des lignes avant de soumettre."))
-        if self.amount_untaxed <= 0:
-            raise UserError(_("Le montant HT doit etre positif pour calculer la marge."))
+        self.check_access_rights('write')
+        self.check_access_rule('write')
+        if self.state not in ('draft', 'sent'):
+            raise UserError(_('Seul un devis peut faire l’objet d’une demande.'))
+        if not self.order_line or self.amount_untaxed <= 0:
+            raise UserError(_('Ajoutez des lignes avec un montant HT positif.'))
         if not self.margin_approval_required:
-            raise UserError(_("La marge respecte le seuil. Aucune approbation n est requise."))
-        if self.margin_approval_state == 'waiting':
-            raise UserError(_("Une demande est deja en attente de validation."))
+            raise UserError(_('La marge respecte le seuil ; aucune dérogation n’est nécessaire.'))
+        if self.margin_approval_state in ('waiting', 'approved'):
+            raise UserError(_('Une demande active existe déjà.'))
+
+    def action_request_approval(self):
+        self._check_can_request_approval()
+        return {'name': _('Demander une approbation'), 'type': 'ir.actions.act_window',
+                'res_model': 'sale.approval.request.wizard', 'view_mode': 'form', 'target': 'new',
+                'context': {'default_order_id': self.id}}
 
     def _do_request_approval(self, justification):
-        """Cree l enregistrement d approbation et met a jour l etat."""
-        self.ensure_one()
+        self._lock_for_approval()
+        self._check_can_request_approval()
+        if not justification or not justification.strip():
+            raise UserError(_('Expliquez la raison de cette dérogation.'))
         self.env['sale.margin.approval'].sudo().create({
-            'order_id': self.id,
-            'state': 'waiting',
-            'requested_by': self.env.uid,
-            'requested_at': fields.Datetime.now(),
-            'justification': justification,
+            'order_id': self.id, 'state': 'waiting', 'requested_by': self.env.uid,
+            'requested_at': fields.Datetime.now(), 'justification': justification.strip(),
             'threshold_at_request': self.company_id.margin_approval_threshold,
-            'amount_untaxed_at_request': self.amount_untaxed,
-            'margin_at_request': self.margin,
+            'amount_untaxed_at_request': self.amount_untaxed, 'margin_at_request': self.margin,
             'margin_rate_at_request': self.margin_percent,
-            'order_version_at_request': self.write_date and 1 or 1,
+            'order_version_at_request': self.commercial_revision,
+            'commercial_fingerprint': self._commercial_fingerprint(),
         })
-        self.margin_approval_state = 'waiting'
-
-    def action_approve_margin(self):
-        """Ouvre le wizard de decision (approbation)."""
-        self.ensure_one()
-        self._check_can_decide()
-        return {
-            'name': _('Approuver la derogation'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'sale.approval.decision.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_order_id': self.id,
-                'default_decision': 'approved',
-            },
-        }
-
-    def action_refuse_margin(self):
-        """Ouvre le wizard de decision (refus)."""
-        self.ensure_one()
-        self._check_can_decide()
-        return {
-            'name': _('Refuser la derogation'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'sale.approval.decision.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_order_id': self.id,
-                'default_decision': 'refused',
-            },
-        }
+        self._set_approval_state('waiting')
 
     def _check_can_decide(self):
-        """Verifie que l utilisateur est approbateur et que le devis est en attente."""
         self.ensure_one()
+        self.check_access_rights('write')
+        self.check_access_rule('write')
         if not self.env.user.has_group('sale_margin_approval.group_approver'):
-            raise AccessError(
-                _("Seul un responsable commercial peut approuver ou refuser une derogation.")
-            )
-        if self.margin_approval_state != 'waiting':
-            raise UserError(_("Ce devis n est pas en attente d approbation."))
+            raise AccessError(_('Seul un approbateur peut décider une dérogation.'))
+        if self.state not in ('draft', 'sent') or self.margin_approval_state != 'waiting':
+            raise UserError(_('Ce devis n’est pas en attente d’approbation.'))
+
+    def _decision_wizard(self, decision):
+        self._check_can_decide()
+        return {'name': _('Décision de marge'), 'type': 'ir.actions.act_window',
+                'res_model': 'sale.approval.decision.wizard', 'view_mode': 'form', 'target': 'new',
+                'context': {'default_order_id': self.id, 'default_decision': decision}}
+
+    def action_approve_margin(self):
+        return self._decision_wizard('approved')
+
+    def action_refuse_margin(self):
+        return self._decision_wizard('refused')
 
     def _do_decide(self, decision, reason):
-        """Enregistre la decision et met a jour l etat du devis et de l approbation."""
-        self.ensure_one()
-        waiting = self.margin_approval_ids.filtered(lambda a: a.state == 'waiting')
-        if not waiting:
-            raise UserError(_("Aucune demande en attente trouvee."))
-        waiting[:1].write({
-            'state': decision,
-            'decided_by': self.env.uid,
-            'decided_at': fields.Datetime.now(),
-            'decision_reason': reason,
-        })
-        self.margin_approval_state = decision
-        action_label = 'approuvee' if decision == 'approved' else 'refusee'
-        self.message_post(
-            body=f"Derogation {action_label} par {self.env.user.name}. Motif : {reason}"
-        )
+        self._lock_for_approval()
+        self._check_can_decide()
+        if decision not in ('approved', 'refused') or not reason or not reason.strip():
+            raise UserError(_('Choisissez une décision et renseignez son motif.'))
+        waiting = self.margin_approval_ids.filtered(lambda a: a.state == 'waiting')[:1]
+        if not waiting or waiting.commercial_fingerprint != self._commercial_fingerprint():
+            raise UserError(_('Les conditions ont changé. Une nouvelle demande est nécessaire.'))
+        waiting.sudo().write({'state': decision, 'decided_by': self.env.uid,
+                              'decided_at': fields.Datetime.now(), 'decision_reason': reason.strip()})
+        self._set_approval_state(decision)
+        self.message_post(body=_('Décision : %(decision)s. Motif : %(reason)s',
+                                decision=decision, reason=reason.strip()))
 
-    # ------------------------------------------------------------------
-    # Confirmation bloquee si necessaire
-    # ------------------------------------------------------------------
     def action_confirm(self):
         for order in self:
+            order._lock_for_approval()
             order._assert_margin_approval_ok()
         return super().action_confirm()
 
     def _assert_margin_approval_ok(self):
-        """Leve une exception si la marge requiert une approbation non accordee."""
         self.ensure_one()
         if not self.margin_approval_required:
             return
-        if self.margin_approval_state != 'approved':
-            raise UserError(
-                _(
-                    "Ce devis ne peut pas etre confirme : le taux de marque (%(rate).1f %%) "
-                    "est inferieur au seuil autorise (%(threshold).1f %%). "
-                    "Veuillez demander une approbation.",
-                    rate=self.margin_percent * 100,
-                    threshold=self.company_id.margin_approval_threshold,
-                )
-            )
-        # Verifier que les valeurs n ont pas change depuis l approbation
         active = self.margin_approval_ids.filtered(lambda a: a.state == 'approved')[:1]
-        if active and abs(active.amount_untaxed_at_request - self.amount_untaxed) > 0.01:
-            raise UserError(
-                _(
-                    "Les conditions du devis ont change depuis l approbation. "
-                    "Une nouvelle approbation est necessaire."
-                )
-            )
+        if self.margin_approval_state != 'approved' or not active:
+            raise UserError(_('La marge est inférieure au seuil. Demandez une approbation.'))
+        if active.commercial_fingerprint != self._commercial_fingerprint():
+            raise UserError(_('Les conditions du devis ont changé depuis l’accord. Demandez une nouvelle approbation.'))
 
-    # ------------------------------------------------------------------
-    # Duplication : reinitialiser l approbation
-    # ------------------------------------------------------------------
     def copy(self, default=None):
-        default = dict(default or {})
-        default['margin_approval_state'] = 'no_required'
-        return super().copy(default)
+        return super().copy(default=default)

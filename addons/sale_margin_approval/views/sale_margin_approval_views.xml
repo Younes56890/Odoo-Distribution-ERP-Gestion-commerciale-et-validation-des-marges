@@ -14,7 +14,7 @@
                 <field name="requested_at"/>
                 <field name="state"/>
                 <field name="threshold_at_request" string="Seuil (%)"/>
-                <field name="margin_rate_at_request" string="Taux marque (%)"/>
+                <field name="margin_rate_at_request" widget="percentage" string="Taux marque (%)"/>
                 <field name="amount_untaxed_at_request" string="Montant HT"/>
                 <field name="decided_by"/>
                 <field name="decided_at"/>
@@ -41,7 +41,7 @@
                     </group>
                     <group string="Valeurs au moment de la demande">
                         <field name="threshold_at_request" readonly="1"/>
-                        <field name="margin_rate_at_request" readonly="1"/>
+                        <field name="margin_rate_at_request" widget="percentage" readonly="1"/>
                         <field name="amount_untaxed_at_request" readonly="1"/>
                         <field name="margin_at_request" readonly="1"/>
                     </group>

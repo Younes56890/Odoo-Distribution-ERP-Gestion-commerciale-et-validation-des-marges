@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 
 
 class SaleMarginApproval(models.Model):
@@ -60,8 +61,13 @@ class SaleMarginApproval(models.Model):
         store=True,
     )
 
+    company_id = fields.Many2one(related='order_id.company_id', store=True, index=True)
+    commercial_fingerprint = fields.Char(copy=False, readonly=True)
+
     @api.model_create_multi
     def create(self, vals_list):
+        if not self.env.su:
+            raise AccessError(_('Utilisez le circuit de demande d’approbation.'))
         records = super().create(vals_list)
         for record in records:
             record.order_id.message_post(
@@ -71,3 +77,13 @@ class SaleMarginApproval(models.Model):
                      f"Justification : {record.justification}",
             )
         return records
+
+    def write(self, vals):
+        if not self.env.su:
+            raise AccessError(_('L’historique est modifié uniquement par le circuit métier.'))
+        return super().write(vals)
+
+    def unlink(self):
+        if not self.env.su:
+            raise AccessError(_('L’historique des approbations ne peut pas être supprimé.'))
+        return super().unlink()

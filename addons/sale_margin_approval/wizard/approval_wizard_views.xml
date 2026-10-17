@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_approval_request_wizard" model="ir.ui.view">
+        <field name="name">sale.approval.request.wizard.form</field>
+        <field name="model">sale.approval.request.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Demander une dérogation">
+                <group><field name="order_id"/><field name="justification" placeholder="Expliquez l’intérêt commercial de cette dérogation…"/></group>
+                <footer><button name="action_submit" type="object" string="Soumettre" class="btn-primary"/><button string="Annuler" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+    <record id="view_approval_decision_wizard" model="ir.ui.view">
+        <field name="name">sale.approval.decision.wizard.form</field>
+        <field name="model">sale.approval.decision.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Décider une dérogation">
+                <group><field name="order_id"/><field name="decision"/><field name="reason"/></group>
+                <footer><button name="action_submit" type="object" string="Enregistrer la décision" class="btn-primary"/><button string="Annuler" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+</odoo>

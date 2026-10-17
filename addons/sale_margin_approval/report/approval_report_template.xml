@@ -47,7 +47,7 @@
                                 <table class="table table-sm">
                                     <tr><td>Montant HT</td><td class="text-right"><t t-esc="order.amount_untaxed"/> <t t-esc="order.currency_id.name"/></td></tr>
                                     <tr><td>Marge estimee</td><td class="text-right"><t t-esc="order.margin"/> <t t-esc="order.currency_id.name"/></td></tr>
-                                    <tr><td><strong>Taux de marque</strong></td><td class="text-right"><strong><t t-esc="'%.1f' % order.margin_percent"/>%</strong></td></tr>
+                                    <tr><td><strong>Taux de marque</strong></td><td class="text-right"><strong><t t-esc="'%.1f' % (order.margin_percent * 100)"/>%</strong></td></tr>
                                     <tr><td>Seuil autorise</td><td class="text-right"><t t-esc="order.company_id.margin_approval_threshold"/>%</td></tr>
                                 </table>
                             </div>

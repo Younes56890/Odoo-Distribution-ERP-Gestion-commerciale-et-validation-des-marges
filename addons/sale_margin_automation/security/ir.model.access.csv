@@ -1,0 +1,19 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+policy_manager,Policy manager,model_sale_margin_automation_policy,sale_margin_approval.group_approver,1,1,1,0
+policy_runner,Policy runner,model_sale_margin_automation_policy,group_runner,1,0,0,0
+engine_runner,Run internal server actions,model_sale_margin_automation_engine,group_runner,1,1,0,0
+job_manager,Job manager,model_sale_margin_automation_job,sale_margin_approval.group_approver,1,0,0,0
+job_sales,Job assigned salesperson,model_sale_margin_automation_job,sales_team.group_sale_salesman,1,0,0,0
+job_runner,Job runner,model_sale_margin_automation_job,group_runner,1,1,0,0
+event_manager,Event manager,model_sale_margin_automation_event,sale_margin_approval.group_approver,1,0,0,0
+event_runner,Event runner,model_sale_margin_automation_event,group_runner,1,0,0,0
+run_manager,Run manager,model_sale_margin_automation_run,sale_margin_approval.group_approver,1,0,0,0
+run_runner,Run runner,model_sale_margin_automation_run,group_runner,1,0,0,0
+order_runner,Read quotations,sale.model_sale_order,group_runner,1,0,0,0
+line_runner,Read quotation lines,sale.model_sale_order_line,group_runner,1,0,0,0
+option_runner,Read quotation options,sale_management.model_sale_order_option,group_runner,1,0,0,0
+approval_runner,Read approvals,sale_margin_approval.model_sale_margin_approval,group_runner,1,0,0,0
+pricelist_runner,Read pricelists,product.model_product_pricelist,group_runner,1,0,0,0
+tax_runner,Read taxes,account.model_account_tax,group_runner,1,0,0,0
+fiscal_runner,Read fiscal positions,account.model_account_fiscal_position,group_runner,1,0,0,0
+payment_term_runner,Read payment terms,account.model_account_payment_term,group_runner,1,0,0,0

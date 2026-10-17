@@ -1,0 +1,32 @@
+name: Checks
+on: [push, pull_request]
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+  odoo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check_sources.py
+      - run: python3 scripts/test_automation_rules.py
+      - name: Install modules and run business/API tests
+        run: docker compose -p optika-automation-ci -f docker-compose.test.yml run --rm odoo
+      - name: Check concurrent workers and SQL uniqueness
+        run: docker compose -p optika-automation-ci -f docker-compose.test.yml run --rm --no-deps odoo python3 /mnt/optika-scripts/check_automation_concurrency.py
+      - if: always()
+        run: docker compose -p optika-automation-ci -f docker-compose.test.yml logs db
+      - if: always()
+        run: docker compose -p optika-automation-ci -f docker-compose.test.yml down --volumes

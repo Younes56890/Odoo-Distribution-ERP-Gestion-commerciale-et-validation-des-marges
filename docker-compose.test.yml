@@ -1,0 +1,30 @@
+# Isolated ephemeral database; no production volumes or published ports.
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: test_only_password
+      POSTGRES_DB: postgres
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 2s
+      retries: 30
+  odoo:
+    image: odoo:17.0
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: test_only_password
+    volumes:
+      - ./addons:/mnt/extra-addons:ro
+      - ./scripts:/mnt/optika-scripts:ro
+      - odoo_files:/var/lib/odoo
+    command: ["odoo", "-d", "optika_automation_test", "-i", "sale_margin_automation", "--without-demo=all", "--test-enable", "--test-tags", "/sale_margin_approval,/optika_rest_api,/sale_margin_automation", "--stop-after-init", "--max-cron-threads=0"]
+volumes:
+  odoo_files:
